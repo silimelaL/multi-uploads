@@ -42,7 +42,7 @@
             <i class="el-icon-plus"></i>
           </el-upload>
           <el-dialog :visible.sync="dialogVisible">
-            <img width="100%" :src="dialogImageUrl" alt />
+            <img width="100%" :src="dialogImageUrl" />
           </el-dialog>
         </div>
       </form>
@@ -80,7 +80,9 @@
 
 
 <script>
-import { mapActions } from "vuex";
+import { setTimeout } from "timers";
+import { mapState, mapActions } from "vuex";
+
 export default {
   name: "create-post",
   props: ["posts"],
@@ -89,6 +91,7 @@ export default {
       dialogImageUrl: "",
       dialogVisible: false,
       imageList: [],
+      status_msg: "",
       status: "",
       title: "",
       body: ""
@@ -98,14 +101,18 @@ export default {
     ...mapActions(["getAllPosts"])
   },
 
+  mounted() {},
+
   methods: {
     updateImageList(file) {
       this.imageList.push(file.raw);
     },
     handlePictureCardPreview(file) {
       this.dialogImageUrl = file.url;
+      this.imageList.push(file);
       this.dialogVisible = true;
     },
+
     showNotification(message) {
       this.status_msg = message;
       setTimeout(() => {
@@ -142,7 +149,7 @@ export default {
 
       api
         .post("/post/create_post", formData, {
-          headers: { "content-type": "multipart/form-data" }
+          headers: { "Content-type": "multipart/form-data" }
         })
         .then(res => {
           this.title = this.body = "";

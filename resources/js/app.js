@@ -15,5 +15,6 @@ Vue.component('all-posts', require('./components/AllPosts.vue').default);
 
 
 const app = new Vue({
+    store,
     el: '#app',
 });
