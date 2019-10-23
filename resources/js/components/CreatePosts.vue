@@ -1,16 +1,18 @@
+
+  
 <template>
   <div class="card mt-4">
-    <div class="card-header">New Posts</div>
+    <div class="card-header">New Post</div>
     <div class="card-body">
       <div
         v-if="status_msg"
-        :class="{'alert-success':status, 'alert-danger':!status}"
+        :class="{'alert-success': status, 'alert-danger': !status }"
         class="alert"
         role="alert"
-      >{{status_msg}}</div>
+      >{{ status_msg }}</div>
       <form>
         <div class="form-group">
-          <label for="examoleFormControlInput">Title</label>
+          <label for="exampleFormControlInput1">Title</label>
           <input
             v-model="title"
             type="text"
@@ -21,28 +23,21 @@
           />
         </div>
         <div class="form-group">
-          <label for="examoleFormControlTextarea1">Post Content</label>
-          <textarea
-            v-model="body"
-            class="form-control"
-            id="post-content"
-            placeholder="Post Title"
-            rows="3"
-            required
-          ></textarea>
+          <label for="exampleFormControlTextarea1">Post Content</label>
+          <textarea v-model="body" class="form-control" id="post-content" rows="3" required></textarea>
         </div>
         <div class>
           <el-upload
-            action="/"
+            action="https://jsonplaceholder.typicode.com/posts/"
             list-type="picture-card"
             :on-preview="handlePictureCardPreview"
-            :on-progress="uploadImageList"
+            :on-change="updateImageList"
             :auto-upload="false"
           >
             <i class="el-icon-plus"></i>
           </el-upload>
           <el-dialog :visible.sync="dialogVisible">
-            <img width="100%" :src="dialogImageUrl" />
+            <img width="100%" :src="dialogImageUrl" alt />
           </el-dialog>
         </div>
       </form>
@@ -52,7 +47,7 @@
         type="button"
         @click="createPost"
         class="btn btn-success"
-      >{{isCreatedPost ? 'Posting...' : 'Create Post'}}</button>
+      >{{ isCreatingPost ? 'Posting...' : 'Create Post' }}</button>
     </div>
   </div>
 </template>
@@ -76,13 +71,16 @@
   line-height: 178px;
   text-align: center;
 }
+.avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
+}
 </style>
-
 
 <script>
 import { setTimeout } from "timers";
 import { mapState, mapActions } from "vuex";
-
 export default {
   name: "create-post",
   props: ["posts"],
@@ -93,6 +91,7 @@ export default {
       imageList: [],
       status_msg: "",
       status: "",
+      isCreatingPost: false,
       title: "",
       body: ""
     };
@@ -100,9 +99,7 @@ export default {
   computed: {
     ...mapActions(["getAllPosts"])
   },
-
   mounted() {},
-
   methods: {
     updateImageList(file) {
       this.imageList.push(file.raw);
@@ -112,52 +109,48 @@ export default {
       this.imageList.push(file);
       this.dialogVisible = true;
     },
-
-    showNotification(message) {
-      this.status_msg = message;
-      setTimeout(() => {
-        this.status_msg = "";
-      }, 3000);
-    },
-    ValidateForm() {
-      if (!this.title) {
-        this.status = false;
-        this.showNotification("Post title cannot be empty");
-        return false;
-      }
-      if (this.imageList.length < 1) {
-        this.status = false;
-        this.showNotification("You need to select an image");
-        return false;
-      }
-      return true;
-    },
     createPost(e) {
       e.preventDefault();
-      if (!this.ValidateForm()) {
+      if (!this.validateForm()) {
         return false;
       }
       this.isCreatingPost = true;
       let formData = new FormData();
-
       formData.append("title", this.title);
       formData.append("body", this.body);
-
       $.each(this.imageList, function(key, image) {
         formData.append(`images[${key}]`, image);
       });
-
       api
         .post("/post/create_post", formData, {
-          headers: { "Content-type": "multipart/form-data" }
+          headers: { "Content-Type": "multipart/form-data" }
         })
         .then(res => {
           this.title = this.body = "";
           this.status = true;
-          this.showNotification("post Successfully Created");
+          this.showNotificaiton("Post Successfully Created");
           this.isCreatingPost = false;
           this.getAllPosts();
         });
+    },
+    validateForm() {
+      if (!this.title) {
+        this.status = false;
+        this.showNotificaiton("Post title cannot be empty");
+        return false;
+      }
+      if (!this.body) {
+        this.status = false;
+        this.showNotification("Post body cannot be empty");
+        return false;
+      }
+      return true;
+    },
+    showNotificaiton(message) {
+      this.status_msg = message;
+      setTimeout(() => {
+        this.status_msg = "";
+      }, 3000);
     }
   }
 };

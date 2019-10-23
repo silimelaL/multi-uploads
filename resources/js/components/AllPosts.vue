@@ -1,6 +1,6 @@
 <template>
   <div class="row">
-    <div class="col-md-6" v-for="(post,i) in posts" :key="i">
+    <div class="col-md-6" v-for="(post, i) in posts" :key="i">
       <div class="card mt-4">
         <img
           v-if="post.post_images.length"
@@ -9,9 +9,9 @@
         />
         <div class="card-body">
           <p class="card-text">
-            <strong>{{post.title}}</strong>
+            <strong>{{ post.title }}</strong>
             <br />
-            {{truncateText(post.body)}}
+            {{ truncateText(post.body) }}
           </p>
         </div>
         <button class="btn btn-success m-2" @click="viewPost(i)">View Post</button>
@@ -19,14 +19,14 @@
     </div>
     <el-dialog v-if="currentPost" :visible.sync="postDialogVisible" width="40%">
       <span>
-        <h3>{{currentPost.title}}</h3>
+        <h3>{{ currentPost.title }}</h3>
         <div class="row">
-          <div class="col-md-6" v-for="(img,i) in currentPost.post_images" :key="i">
+          <div class="col-md-6" v-for="(img, i) in currentPost.post_images" :key="i">
             <img :src="img.post_image_path" class="img-thumbnail" alt />
           </div>
         </div>
         <hr />
-        <p>{{currentPost.body}}</p>
+        <p>{{ currentPost.body }}</p>
       </span>
       <span slot="footer" class="dialog-footer">
         <el-button type="primary" @click="postDialogVisible = false">Okay</el-button>
@@ -48,7 +48,6 @@ export default {
   computed: {
     ...mapState(["posts"])
   },
-
   beforeMount() {
     this.$store.dispatch("getAllPosts");
   },
@@ -60,7 +59,7 @@ export default {
       return text;
     },
     viewPost(postIndex) {
-      const post = this.post[postIndex];
+      const post = this.posts[postIndex];
       this.currentPost = post;
       this.postDialogVisible = true;
     }

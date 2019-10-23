@@ -1,72 +1,40 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\User;
-use Illuminate\Foundation\Auth\RegistersUsers;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Request;
+use App\Post;
+use App\PostImage;
+use Auth;
+use Storage;
 
-class RegisterController extends Controller
+class PostController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Register Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller handles the registration of new users as well as their
-    | validation and creation. By default this controller uses a trait to
-    | provide this functionality without requiring any additional code.
-    |
-    */
-
-    use RegistersUsers;
-
-    /**
-     * Where to redirect users after registration.
-     *
-     * @var string
-     */
-    protected $redirectTo = '/home';
-
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
+    public function getAllPosts()
     {
-        $this->middleware('guest');
+        $posts = Post::with('post_images')->orderBy('created_at', 'desc')->get();
+        return response()->json(['error' => false, 'data' => $posts]);
     }
-
-    /**
-     * Get a validator for an incoming registration request.
-     *
-     * @param  array  $data
-     * @return \Illuminate\Contracts\Validation\Validator
-     */
-    protected function validator(array $data)
+    public function createPost(Request $request)
     {
-        return Validator::make($data, [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        $user = Auth::user();
+        $title = $request->title;
+        $body = $request->body;
+        $images = $request->images;
+        $post = Post::create([
+            'title' => $title,
+            'body' => $body,
+            'user_id' => $user->id,
         ]);
-    }
-
-    /**
-     * Create a new user instance after a valid registration.
-     *
-     * @param  array  $data
-     * @return \App\User
-     */
-    protected function create(array $data)
-    {
-        return User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-        ]);
+        // store each image
+        foreach ($images as $image) {
+            $imagePath = Storage::disk('uploads')->put($user->email . '/posts/' . $post->id, $image);
+            PostImage::create([
+                'post_image_caption' => $title,
+                'post_image_path' => '/uploads/' . $imagePath,
+                'post_id' => $post->id
+            ]);
+        }
+        return response()->json(['error' => false, 'data' => $post]);
     }
 }
